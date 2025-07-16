@@ -13,7 +13,7 @@ export default function MyInput({
   placeholder = "",
   value,
   onChangeText = () => {},
-  type = "text", // text, password,
+  type = "text", // text, password, number
   disabled,
   style = {
     container: {},
@@ -24,6 +24,8 @@ export default function MyInput({
 }) {
   const isPassword = type?.toLowerCase() === "password";
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  const isNumber = type?.toLowerCase() === "number";
 
   const styles = StyleSheet.create({
     container: {
@@ -60,17 +62,26 @@ export default function MyInput({
     },
   });
 
+  function handleChangeText(text) {
+    if (isNumber) {
+      onChangeText(text.replace(/[^0-9]/g, ""));
+    } else {
+      onChangeText(text);
+    }
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+      {label && <Text style={styles.label}>{label}</Text>}
       <View style={styles.inputContainer}>
         <TextInput
           editable={!disabled}
           style={styles.input}
           placeholder={placeholder}
           value={value}
-          onChangeText={onChangeText}
+          onChangeText={handleChangeText}
           secureTextEntry={isPassword && !isPasswordVisible}
+          keyboardType={isNumber ? "numeric" : "default"}
         />
         {isPassword && (
           <TouchableOpacity
