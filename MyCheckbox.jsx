@@ -1,76 +1,84 @@
 import { useEffect, useState } from "react";
-import { TouchableOpacity, Text, View, Image, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, Image } from "react-native";
+import { StyleSheet } from "react-native";
 
-const ASSETS_PATH = "./assets";
-const ICON_RADIO_ON = require(`${ASSETS_PATH}/radio-checked.png`);
-const ICON_RADIO_OFF = require(`${ASSETS_PATH}/radio-unchecked.png`);
-const ICON_CHECKBOX_ON = require(`${ASSETS_PATH}/checkbox-checked.png`);
-const ICON_CHECKBOX_OFF = require(`${ASSETS_PATH}/checkbox-unchecked.png`);
+const ASSETS_PATH = "./assets/"; // Change this to the path of the icons
+const ICON = {
+  CHECKBOX_CHECKED: require(ASSETS_PATH + "checkbox-checked.png"),
+  CHECKBOX_UNCHECKED: require(ASSETS_PATH + "checkbox-unchecked.png"),
+  RADIO_CHECKED: require(ASSETS_PATH + "radio-checked.png"),
+  RADIO_UNCHECKED: require(ASSETS_PATH + "radio-unchecked.png"),
+};
 
 export default function MyCheckbox({
-  onPress = () => {},
-  value = "", // value to bind
-  bindValue = [], // value binded to this field, // should be array for mulitple value // should be string for single value
-  multiple = true,
-  label = "",
-  disabled,
+  label, // text to display next to the checkbox/radio
+  value, // value of the checkbox/radio
+  bindState = [], // current state of the useState(), if multiple is true, it should be an array, else it should be a single value
+  onPress = () => {}, // set function of the useState() to handle the press event
+  multiple = true, // if true, act as a checkbox, else it will be a radio button
+  disabled = false, // if true, the checkbox/radio will be disabled
+  style = {}, // style object to apply to the checkbox/radio
 }) {
-  const [isChecked, setIsChecked] = useState(false);
-
-  useEffect(() => {
-    let isChecked = false;
-    if (multiple) {
-      isChecked = bindValue.includes(value);
-    } else {
-      isChecked = bindValue === value;
-    }
-    setIsChecked(isChecked);
-  }, [bindValue, value]);
-
   function handlePress() {
+    let newState = bindState;
     if (multiple) {
-      // handle unselect
-      if (bindValue.includes(value)) {
-        onPress(bindValue.filter((item) => item !== value));
+      if (bindState.includes(value)) {
+        newState = bindState.filter((v) => v !== value);
       } else {
-        onPress([...bindValue, value]);
+        newState = [...bindState, value];
       }
     } else {
-      onPress(value);
+      newState = value;
     }
+    onPress(newState);
   }
+
+  const [isChecked, setIsChecked] = useState(false);
+  useEffect(() => {
+    if (multiple) {
+      setIsChecked(bindState.includes(value));
+    } else {
+      setIsChecked(bindState === value);
+    }
+  }, [bindState, value, multiple]);
 
   const styles = StyleSheet.create({
     container: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      ...style?.container,
       opacity: disabled ? 0.5 : 1,
     },
-    checkboxIcon: {
+    image: {
       width: 20,
       height: 20,
-      tintColor: isChecked ? "rgb(38, 106, 184)" : "rgb(0, 0, 0)",
+      tintColor: isChecked ? "rgb(47, 97, 183)" : "rgb(0, 0, 0)",
+      ...style?.image,
+    },
+    label: {
+      fontSize: 16,
+      fontWeight: "bold",
+      ...style?.label,
     },
   });
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={handlePress}
-      disabled={disabled}
-    >
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
+    <TouchableOpacity onPress={handlePress} disabled={disabled}>
+      <View style={styles.container}>
         <Image
+          style={styles.image}
           source={
             isChecked
               ? multiple
-                ? ICON_CHECKBOX_ON
-                : ICON_RADIO_ON
+                ? ICON.CHECKBOX_CHECKED
+                : ICON.RADIO_CHECKED
               : multiple
-              ? ICON_CHECKBOX_OFF
-              : ICON_RADIO_OFF
+              ? ICON.CHECKBOX_UNCHECKED
+              : ICON.RADIO_UNCHECKED
           }
-          style={styles.checkboxIcon}
         />
-        {label && <Text>{label}</Text>}
+        <Text>{label}</Text>
       </View>
     </TouchableOpacity>
   );
